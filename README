@@ -1,0 +1,5 @@
+randomart
+
+Shamelessly stolen from openssh's key_fingerprint_randomart, rewritten in go.
+
+Thanks Tatu!
