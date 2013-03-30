@@ -1,4 +1,5 @@
 package main
+
 /*
  * Draw an ASCII-Art representing the fingerprint so human brain can
  * profit from its built-in pattern recognition ability.
@@ -48,10 +49,10 @@ func MIN(a, b int) int {
  * Else pictures would be too dense, and drawing the frame would
  * fail, too, because the key type would not fit in anymore.
  */
- const (
-	FLDBASE = 8
+const (
+	FLDBASE   = 8
 	FLDSIZE_Y = (FLDBASE + 1)
-	FLDSIZE_X = (FLDBASE * 2 + 1)
+	FLDSIZE_X = (FLDBASE*2 + 1)
 )
 
 func key_fingerprint_randomart(file *os.File) string {
@@ -65,46 +66,46 @@ func key_fingerprint_randomart(file *os.File) string {
 	var retval [(FLDSIZE_X + 3) * (FLDSIZE_Y + 2)]byte
 
 	/* initialize field */
-	x := FLDSIZE_X / 2;
-	y := FLDSIZE_Y / 2;
+	x := FLDSIZE_X / 2
+	y := FLDSIZE_Y / 2
 
 	/* process raw key */
 	input := make([]byte, 1)
 	nread, err := file.Read(input)
-	for  err == nil && nread > 0 {
+	for err == nil && nread > 0 {
 		/* each byte conveys four 2-bit move commands */
 		for b := 0; b < 4; b++ {
 			/* evaluate 2 bit, rest is shifted later */
-			if input[0] & 0x1 > 0 {
+			if input[0]&0x1 > 0 {
 				x += 1
 			} else {
 				x += -1
 			}
 
-			if input[0] & 0x2 > 0 {
+			if input[0]&0x2 > 0 {
 				y++
 			} else {
 				y--
 			}
 
 			/* assure we are still in bounds */
-			x = MAX(x, 0);
-			y = MAX(y, 0);
-			x = MIN(x, FLDSIZE_X - 1);
-			y = MIN(y, FLDSIZE_Y - 1);
+			x = MAX(x, 0)
+			y = MAX(y, 0)
+			x = MIN(x, FLDSIZE_X-1)
+			y = MIN(y, FLDSIZE_Y-1)
 
 			/* augment the field */
-			if int(field[x][y]) < len_aug - 2 {
-				field[x][y]++;
+			if int(field[x][y]) < len_aug-2 {
+				field[x][y]++
 			}
-			input[0] = input[0] >> 2;
+			input[0] = input[0] >> 2
 		}
 		nread, err = file.Read(input)
 	}
 
 	/* mark starting point and end point*/
-	field[FLDSIZE_X / 2][FLDSIZE_Y / 2] = byte(len_aug - 1);
-	field[x][y] = byte(len_aug);
+	field[FLDSIZE_X/2][FLDSIZE_Y/2] = byte(len_aug - 1)
+	field[x][y] = byte(len_aug)
 
 	i := 0
 	retval[i] = '+'
@@ -112,7 +113,7 @@ func key_fingerprint_randomart(file *os.File) string {
 
 	/* output upper border */
 	for x := 0; x < FLDSIZE_X; x++ {
-		retval[i] = '-';
+		retval[i] = '-'
 		i++
 	}
 	retval[i] = '+'
@@ -135,7 +136,7 @@ func key_fingerprint_randomart(file *os.File) string {
 	}
 
 	/* output lower border */
-	retval[i] = '+';
+	retval[i] = '+'
 	i++
 	for j := 0; j < FLDSIZE_X; j++ {
 		retval[i] = '-'
