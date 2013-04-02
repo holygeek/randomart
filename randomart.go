@@ -1,4 +1,4 @@
-package main
+package randomart
 
 /*
  * Draw an ASCII-Art representing the fingerprint so human brain can
@@ -25,7 +25,6 @@ package main
  */
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -54,6 +53,10 @@ const (
 	FLDSIZE_Y = (FLDBASE + 1)
 	FLDSIZE_X = (FLDBASE*2 + 1)
 )
+
+func From(file *os.File) string {
+	return key_fingerprint_randomart(file)
+}
 
 func key_fingerprint_randomart(file *os.File) string {
 	/*
@@ -146,8 +149,4 @@ func key_fingerprint_randomart(file *os.File) string {
 	i++
 
 	return string(retval[0:i])
-}
-
-func main() {
-	fmt.Println(key_fingerprint_randomart(os.Stdin))
 }
