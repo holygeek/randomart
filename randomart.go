@@ -54,11 +54,35 @@ const (
 	FLDSIZE_X = (FLDBASE*2 + 1)
 )
 
-func From(file *os.File) string {
-	return key_fingerprint_randomart(file)
+func FromString(str string) string {
+	ch := make(chan byte)
+
+	go func() {
+		defer close(ch)
+		for _, v := range []byte(str) {
+			ch <- v
+		}
+	}()
+	return key_fingerprint_randomart(ch)
 }
 
-func key_fingerprint_randomart(file *os.File) string {
+func FromFile(file *os.File) string {
+	ch := make(chan byte)
+
+	go func() {
+		defer close(ch)
+		// TODO make input a 1 element byte array
+		input := make([]byte, 1)
+		nread, err := file.Read(input)
+		for err == nil && nread > 0 {
+			ch <- input[0]
+			nread, err = file.Read(input)
+		}
+	}()
+	return key_fingerprint_randomart(ch)
+}
+
+func key_fingerprint_randomart(ch chan byte) string {
 	/*
 	 * Chars to be used after each other every time the worm
 	 * intersects with itself.  Matter of taste.
@@ -73,19 +97,17 @@ func key_fingerprint_randomart(file *os.File) string {
 	y := FLDSIZE_Y / 2
 
 	/* process raw key */
-	input := make([]byte, 1)
-	nread, err := file.Read(input)
-	for err == nil && nread > 0 {
+	for input, ok := <-ch; ok; input, ok = <-ch {
 		/* each byte conveys four 2-bit move commands */
 		for b := 0; b < 4; b++ {
 			/* evaluate 2 bit, rest is shifted later */
-			if input[0]&0x1 > 0 {
+			if input&0x1 > 0 {
 				x += 1
 			} else {
 				x += -1
 			}
 
-			if input[0]&0x2 > 0 {
+			if input&0x2 > 0 {
 				y++
 			} else {
 				y--
@@ -101,9 +123,8 @@ func key_fingerprint_randomart(file *os.File) string {
 			if int(field[x][y]) < len_aug-2 {
 				field[x][y]++
 			}
-			input[0] = input[0] >> 2
+			input = input >> 2
 		}
-		nread, err = file.Read(input)
 	}
 
 	/* mark starting point and end point*/
